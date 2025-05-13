@@ -1,4 +1,4 @@
-### API de Finanças Pessoais
+## API de Finanças Pessoais
 
 ### O que a API faz
 - Cadastro de despesas, receitas, metas e investimentos do usuário
