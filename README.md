@@ -1,3 +1,11 @@
+Antes de começar tudo, siga esse passo a passo
+
+```text
+# pip install fastapi uvicorn pydantic
+# pip freeze > requirements.txt
+# uvicorn main:app
+```
+
 # API de Finanças Pessoais com IA
 
 ## 1. Visão Geral do Projeto
