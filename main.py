@@ -4,9 +4,10 @@
 
 from fastapi import FastAPI
 from models import Transaction, Goal
-from ai import categorize_transaction, nlp_query
 
 app = FastAPI()
+
+
 
 # Rotas de Transações
 @app.post("/transacoes/")
