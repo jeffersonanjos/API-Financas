@@ -2,34 +2,48 @@
 # pip freeze > requirements.txt
 # uvicorn main:app
 
+from typing import List
+from uuid import UUID
 from fastapi import FastAPI
-from models import Transaction, Goal
+from models import Transaction, Meta
 
 app = FastAPI()
 
-
+transacoes:List[Transaction]=[]
+metas:List[Meta]=[]
 
 # Rotas de Transações
 @app.post("/transacoes/")
-def add_transacao(descricao: str, valor: float):
-    categoria = categorize_transaction(descricao)  # IA simplificada
-    transacao = Transaction(descricao=descricao, valor=valor, categoria=categoria)
-    transacao.save()
-    return {"message": "Transação salva!"}
+def add_transacao(desc: str, valor: float, categoria: str):
+    transacao = {
+        "id": UUID.uuid4(),
+        "desc": desc,
+        "valor": valor,
+        "categoria": categoria
+    }
+
+    trans = Transaction(**transacao)
+    transacoes.append(trans)
+    
+    
 
 @app.get("/transacoes/")
 def listar_transacoes():
-    return Transaction.get_all()
+    return transacoes
 
 # Rotas de Metas (simplificado)
 @app.post("/metas/")
 def add_meta(nome: str, valor_alvo: float):
-    meta = Goal(nome=nome, valor_alvo=valor_alvo)
-    meta.save()
-    return {"message": "Meta criada!"}
+    meta = {
+        "id": UUID.uuid3(),
+        "nome": nome,
+        "valor_alvo": valor_alvo
+    }
 
-# Rota do Assistente de NLP
-@app.post("/assistente/")
-def perguntar(pergunta: str):
-    resposta = nlp_query(pergunta)  # Ex: "Quanto gastei com comida?"
-    return {"resposta": resposta}
+    goal = Meta(**meta)
+    metas.append(goal)
+
+@app.get("/metas/")
+def listar_metas():
+    return metas
+
