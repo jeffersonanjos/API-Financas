@@ -31,19 +31,12 @@ Antes de começar tudo, siga esse passo a passo
 - **Análise preditiva**
   - Identificação de padrões de gastos
   - Sugestões de economia personalizadas
-- **Assistente virtual**
-  - Respostas em linguagem natural para consultas como:
-    ```
-    "Quanto gastei com delivery este mês?"
-    "Qual meu maior gasto no último trimestre?"
-    ```
 
 ## 3. Arquitetura
 ```text
 finances-api/
-├── main.py                # Configuração FastAPI
+├── main.py                # Configuração FastAPI e endpoints CRUD
 ├── /models/               # Schemas Pydantic
-├── /security/             # Autenticação
 └── /tests/                # Testes automatizados
 ```
 
