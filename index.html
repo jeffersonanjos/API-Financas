@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciador de Finanças Pessoais</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .modal {
+            transition: opacity 0.3s ease-in-out;
+            pointer-events: auto;
+        }
+        .modal.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .category-header {
+            background-color: #f3f4f6;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .category-total {
+            font-weight: bold;
+            color: #4b5563;
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8 bg-gray-100 min-h-screen flex items-center justify-center">
+    <div class="container mx-auto p-4 sm:p-6 bg-white rounded-xl shadow-lg w-full max-w-2xl">
+        <h1 class="text-3xl sm:text-4xl font-bold text-center text-gray-800 mb-6">Gerenciador de Finanças Pessoais</h1>
+
+        <!-- Formulário para adicionar/editar transações -->
+        <div class="bg-gray-50 p-6 rounded-lg shadow-inner mb-8">
+            <h2 id="form-title" class="text-2xl font-semibold mb-4 text-gray-700">Adicionar Nova Transação</h2>
+            <form id="transaction-form" class="space-y-4">
+                <input type="hidden" id="transaction-id">
+                <div>
+                    <label for="description" class="block text-sm font-medium text-gray-700">Descrição</label>
+                    <input type="text" id="description" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
+                </div>
+                <div>
+                    <label for="amount" class="block text-sm font-medium text-gray-700">Valor (R$)</label>
+                    <input type="number" id="amount" step="0.01" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
+                </div>
+                <div>
+                    <label for="type" class="block text-sm font-medium text-gray-700">Tipo</label>
+                    <select id="type" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
+                        <option value="receita">Receita</option>
+                        <option value="despesa">Despesa</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="category" class="block text-sm font-medium text-gray-700">Categoria</label>
+                    <select id="category" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
+                        <option value="alimentacao">Alimentação</option>
+                        <option value="lazer">Lazer</option>
+                        <option value="saude">Saúde</option>
+                        <option value="contas">Contas</option>
+                        <option value="outros">Outros</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="date" class="block text-sm font-medium text-gray-700">Data</label>
+                    <input type="date" id="date" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
+                </div>
+                <div class="flex space-x-4">
+                    <button type="submit" class="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Salvar Transação</button>
+                    <button type="button" id="cancel-edit" class="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-gray-700 bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500" style="display: none;">Cancelar</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Lista de transações agrupadas por categoria -->
+        <div id="transactions-list" class="space-y-6">
+            <!-- As transações serão carregadas aqui -->
+        </div>
+
+        <!-- Modal de Confirmação de Exclusão -->
+        <div id="confirm-modal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                <div class="mt-3 text-center">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">Confirmar Exclusão</h3>
+                    <div class="mt-2 px-7 py-3">
+                        <p class="text-sm text-gray-500">Você tem certeza que deseja deletar esta transação?</p>
+                    </div>
+                    <div class="items-center px-4 py-3">
+                        <button id="confirm-delete-btn" class="px-4 py-2 bg-red-600 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500">
+                            Deletar
+                        </button>
+                        <button id="cancel-delete-btn" class="mt-3 px-4 py-2 bg-gray-200 text-gray-700 text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                            Cancelar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Modal de Mensagem de Erro/Sucesso -->
+        <div id="message-modal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                <div class="mt-3 text-center">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900" id="message-modal-title"></h3>
+                    <div class="mt-2 px-7 py-3">
+                        <p class="text-sm text-gray-500" id="message-modal-body"></p>
+                    </div>
+                    <div class="items-center px-4 py-3">
+                        <button id="close-message-btn" class="px-4 py-2 bg-indigo-600 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            Fechar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const api_url = "/";
+
+        const transactionForm = document.getElementById('transaction-form');
+        const transactionIdInput = document.getElementById('transaction-id');
+        const descriptionInput = document.getElementById('description');
+        const amountInput = document.getElementById('amount');
+        const typeInput = document.getElementById('type');
+        const categoryInput = document.getElementById('category');
+        const dateInput = document.getElementById('date');
+        const formTitle = document.getElementById('form-title');
+        const cancelEditBtn = document.getElementById('cancel-edit');
+        const transactionsList = document.getElementById('transactions-list');
+        const confirmModal = document.getElementById('confirm-modal');
+        const messageModal = document.getElementById('message-modal');
+        const messageModalTitle = document.getElementById('message-modal-title');
+        const messageModalBody = document.getElementById('message-modal-body');
+        const closeMessageBtn = document.getElementById('close-message-btn');
+
+        let transactionIdToDelete = null;
+
+        // Função para formatar a data para 'yyyy-MM-dd'
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // Função para exibir o modal de mensagem
+        function showMessageModal(title, message) {
+            messageModalTitle.textContent = title;
+            messageModalBody.textContent = message;
+            messageModal.classList.remove('hidden');
+        }
+
+        // Função para fechar o modal de mensagem
+        function closeMessageModal() {
+            messageModal.classList.add('hidden');
+        }
+
+        closeMessageBtn.addEventListener('click', closeMessageModal);
+
+        // Função para buscar e renderizar as transações agrupadas
+        async function fetchGroupedTransactions() {
+            try {
+                const response = await fetch(`${api_url}transactions/grouped_by_category`);
+                if (!response.ok) {
+                    throw new Error(`Erro HTTP! status: ${response.status}`);
+                }
+                const groupedTransactions = await response.json();
+                renderGroupedTransactions(groupedTransactions);
+            } catch (err) {
+                console.error("Erro ao buscar transações agrupadas:", err);
+                showMessageModal("Erro de Conexão", "Não foi possível carregar as transações. Verifique a conexão com a API.");
+            }
+        }
+
+        // Função para buscar as transações de uma categoria específica
+        async function fetchTransactionsByCategory(category) {
+            try {
+                const response = await fetch(`${api_url}transactions/?category=${category}`);
+                if (!response.ok) {
+                    throw new Error(`Erro HTTP! status: ${response.status}`);
+                }
+                const transactions = await response.json();
+                return transactions;
+            } catch (err) {
+                console.error(`Erro ao buscar transações da categoria ${category}:`, err);
+                return [];
+            }
+        }
+
+        // Função para renderizar as transações agrupadas e seus totais
+        async function renderGroupedTransactions(groupedData) {
+            transactionsList.innerHTML = '';
+            for (const group of groupedData) {
+                const categoryTotal = group.total_amount;
+                const categoryName = group.category;
+                const transactions = await fetchTransactionsByCategory(categoryName);
+                
+                const categorySection = document.createElement('div');
+                categorySection.className = 'bg-white rounded-lg shadow-sm mb-4';
+
+                const categoryHeader = document.createElement('div');
+                categoryHeader.className = 'category-header border-b border-gray-200';
+                categoryHeader.innerHTML = `
+                    <h3 class="text-xl font-semibold text-gray-800 capitalize">${categoryName}</h3>
+                    <span class="category-total text-lg text-gray-600">Total: R$ ${categoryTotal.toFixed(2)}</span>
+                `;
+                categorySection.appendChild(categoryHeader);
+
+                const transactionList = document.createElement('div');
+                transactions.sort((a, b) => new Date(b.date) - new Date(a.date)); // Ordena por data
+                transactions.forEach(t => {
+                    const transactionItem = document.createElement('div');
+                    transactionItem.className = 'p-4 border-b border-gray-100 flex justify-between items-center';
+                    transactionItem.innerHTML = `
+                        <div>
+                            <p class="text-gray-800 font-medium">${t.description}</p>
+                            <p class="text-sm text-gray-500">${new Date(t.date).toLocaleDateString('pt-BR')}</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-lg font-bold ${t.type === 'receita' ? 'text-green-600' : 'text-red-600'}">R$ ${t.amount.toFixed(2)}</span>
+                            <button onclick="prepareEditTransaction(${t.id})" class="text-blue-500 hover:text-blue-700">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
+                                    <path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                            <button onclick="openDeleteModal(${t.id})" class="text-red-500 hover:text-red-700">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                        </div>
+                    `;
+                    transactionList.appendChild(transactionItem);
+                });
+                categorySection.appendChild(transactionList);
+                transactionsList.appendChild(categorySection);
+            }
+        }
+
+        // Função para submeter o formulário de transação
+        transactionForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const transactionId = transactionIdInput.value;
+            const description = descriptionInput.value;
+            const amount = parseFloat(amountInput.value);
+            const type = typeInput.value;
+            const category = categoryInput.value;
+            
+            // Formatando a data para um padrão ISO 8601 completo
+            const date = dateInput.value;
+            const datetime = new Date(date).toISOString();
+
+            const transactionData = {
+                description,
+                amount,
+                type,
+                category,
+                date: datetime
+            };
+
+            const url = transactionId ? `${api_url}transactions/${transactionId}` : `${api_url}transactions/`;
+            const method = transactionId ? 'PUT' : 'POST';
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(transactionData)
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || `Erro HTTP! status: ${response.status}`);
+                }
+                resetForm();
+                await fetchGroupedTransactions();
+            } catch (err) {
+                console.error("Erro ao salvar transação:", err);
+                showMessageModal("Erro ao salvar transação", `Ocorreu um erro: ${err.message}`);
+            }
+        });
+
+        // Função para preparar o formulário para edição
+        async function prepareEditTransaction(id) {
+            try {
+                const response = await fetch(`${api_url}transactions/${id}`);
+                const transaction = await response.json();
+
+                formTitle.textContent = "Editar Transação";
+                transactionIdInput.value = transaction.id;
+                descriptionInput.value = transaction.description;
+                amountInput.value = transaction.amount;
+                typeInput.value = transaction.type;
+                categoryInput.value = transaction.category;
+                dateInput.value = formatDate(transaction.date);
+                cancelEditBtn.style.display = 'block';
+
+            } catch (err) {
+                console.error("Erro ao buscar transação para edição:", err);
+                showMessageModal("Erro de Edição", `Não foi possível carregar a transação para edição: ${err.message}`);
+            }
+        }
+
+        // Função para resetar o formulário
+        function resetForm() {
+            formTitle.textContent = "Adicionar Nova Transação";
+            transactionForm.reset();
+            transactionIdInput.value = '';
+            cancelEditBtn.style.display = 'none';
+        }
+
+        cancelEditBtn.addEventListener('click', resetForm);
+
+        // Funções para o modal de exclusão
+        const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+        const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+
+        function openDeleteModal(id) {
+            transactionIdToDelete = id;
+            confirmModal.classList.remove('hidden');
+        }
+
+        function closeDeleteModal() {
+            transactionIdToDelete = null;
+            confirmModal.classList.add('hidden');
+        }
+
+        confirmDeleteBtn.addEventListener('click', async () => {
+            if (transactionIdToDelete !== null) {
+                try {
+                    const response = await fetch(`${api_url}/transactions/${transactionIdToDelete}`, {
+                        method: 'DELETE'
+                    });
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.detail || `Erro HTTP! status: ${response.status}`);
+                    }
+                    closeDeleteModal();
+                    fetchGroupedTransactions();
+                } catch (err) {
+                    console.error("Erro ao deletar transação:", err);
+                    showMessageModal("Erro ao Deletar", `Não foi possível deletar a transação: ${err.message}`);
+                }
+            }
+        });
+
+        cancelDeleteBtn.addEventListener('click', closeDeleteModal);
+
+        // Atribui a função ao escopo global para que o HTML possa chamá-la
+        window.openDeleteModal = openDeleteModal;
+        window.prepareEditTransaction = prepareEditTransaction;
+        window.onload = fetchGroupedTransactions;
+    </script>
+</body>
+</html>
