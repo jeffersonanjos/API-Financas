@@ -11,11 +11,10 @@ Antes de começar tudo, siga esse passo a passo
 ## 1. Visão Geral do Projeto
 
 **Objetivo**  
-  - Desenvolver uma solução inteligente para gestão financeira pessoal que combine automação com análises preditivas de IA.
+  - Desenvolver uma solução inteligente para gestão financeira pessoal que combine automação com análises preditivas.
 
 **Tecnologias Principais**
 - Backend: Python + FastAPI
-- IA: Scikit-learn/PyTorch + NLP
 - Banco de Dados: Sqlite
 
 ## 2. Funcionalidades Principais
@@ -28,7 +27,7 @@ Antes de começar tudo, siga esse passo a passo
   - Definição de objetivos financeiros
   - Acompanhamento personalizado
 
-### 2.2 Recursos de IA
+### 2.2 Recursos
 - **Análise preditiva**
   - Identificação de padrões de gastos
   - Sugestões de economia personalizadas
@@ -43,9 +42,6 @@ Antes de começar tudo, siga esse passo a passo
 ```text
 finances-api/
 ├── main.py                # Configuração FastAPI
-├── /ai/
-│   ├── analysis.py        # Modelos de análise
-│   └── nlp_engine.py      # Processamento de linguagem
 ├── /models/               # Schemas Pydantic
 ├── /security/             # Autenticação
 └── /tests/                # Testes automatizados
