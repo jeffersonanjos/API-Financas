@@ -1,63 +1,139 @@
-Antes de começar tudo, siga esse passo a passo
+# API de Finanças Pessoais
 
-```text
-# pip install fastapi uvicorn pydantic
-# pip freeze > requirements.txt
-# uvicorn main:app
+## Visão Geral
+
+Sistema de gestão financeira pessoal desenvolvido com FastAPI, oferecendo controle completo de transações e metas financeiras.
+
+## Tecnologias
+
+- **Backend**: Python + FastAPI
+- **Banco de Dados**: SQLite
+- **ORM**: SQLModel
+- **Documentação**: Swagger UI automática
+
+## Instalação e Execução
+
+### 1. Instalar dependências
+```bash
+pip install -r requirements.txt
 ```
 
-# API de Finanças Pessoais com IA
+### 2. Executar a aplicação
+```bash
+uvicorn main:app --reload
+```
 
-## 1. Visão Geral do Projeto
+### 3. Acessar a documentação
+- **Swagger UI**: http://localhost:8000/docs
 
-**Objetivo**  
-  - Desenvolver uma solução inteligente para gestão financeira pessoal que combine automação com análises preditivas.
+## Funcionalidades
 
-**Tecnologias Principais**
-- Backend: Python + FastAPI
-- Banco de Dados: Sqlite
+### Transações
+- ✅ **CRUD completo** de transações
+- ✅ **Filtros** por tipo (receita/despesa) e categoria
+- ✅ **Resumo por categoria** com totais
+- ✅ **Cálculo de saldo** (receitas - despesas)
 
-## 2. Funcionalidades Principais
+### Metas Financeiras
+- ✅ **CRUD completo** de metas
+- ✅ **Controle de progresso** das metas
+- ✅ **Status automático** (ativa/concluída/cancelada)
+- ✅ **Filtros** por status
 
-### 2.1 Núcleo da API
-- **Cadastro de transações**
-  - Registro manual e automático de despesas/receitas
-  - Categorização inteligente usando ML
-- **Gestão de metas**
-  - Definição de objetivos financeiros
-  - Acompanhamento personalizado
+## Endpoints Principais
 
-### 2.2 Recursos
-- **Análise preditiva**
-  - Identificação de padrões de gastos
-  - Sugestões de economia personalizadas
+### Transações
+- `POST /transactions/` - Criar transação
+- `GET /transactions/` - Listar transações (com filtros)
+- `GET /transactions/{id}` - Buscar transação específica
+- `PUT /transactions/{id}` - Atualizar transação
+- `DELETE /transactions/{id}` - Deletar transação
+- `GET /transactions/summary/category` - Resumo por categoria
+- `GET /transactions/summary/balance` - Resumo de saldo
 
-## 3. Arquitetura
-```text
+### Metas
+- `POST /goals/` - Criar meta
+- `GET /goals/` - Listar metas (com filtros)
+- `GET /goals/{id}` - Buscar meta específica
+- `PUT /goals/{id}` - Atualizar meta
+- `DELETE /goals/{id}` - Deletar meta
+- `PUT /goals/{id}/progress` - Atualizar progresso da meta
+
+## Estrutura do Projeto
+
+```
 finances-api/
-├── main.py                # Configuração FastAPI e endpoints CRUD
-├── /models/               # Schemas Pydantic
-└── /tests/                # Testes automatizados
+├── main.py              # Aplicação FastAPI
+├── database.py          # Configuração do banco
+├── requirements.txt     # Dependências
+├── finances.db         # Banco SQLite
+├── testes_automatizados.py  # Testes da API
+└── models/
+    ├── transaction.py   # Modelos de transação
+    └── goal.py         # Modelos de meta
 ```
 
-## 4.Etapas de Entrega (Cronograma Detalhado)
-### Etapa 1
-- **Data de Início:** `13-05-2025`
-- **Previsão de Término:** `15-05-2025`
+## Testes Automatizados
 
-### Etapa 2
-- **Data de Início:**
-- **Previsão de Término:** 
+O arquivo `testes_automatizados.py` contém testes que verificam se todos os endpoints estão funcionando corretamente.
 
-### Etapa 3
-- **Data de Início:** 
-- **Previsão de Término:** 
+### Como executar os testes:
+```bash
+python testes_automatizados.py
+```
 
-### Etapa 4
-- **Data de Início:** 
-- **Previsão de Término:** 
+### O que os testes verificam:
+- ✅ **Conexão com a API** - Testa se o servidor está rodando
+- ✅ **CRUD de transações** - Cria, lista, filtra e atualiza transações
+- ✅ **Relatórios** - Verifica resumos por categoria e saldo
+- ✅ **CRUD de metas** - Cria, lista e atualiza progresso das metas
+- ✅ **Status automático** - Confirma que metas ficam "concluídas" quando atingem o valor alvo
 
-### Etapa 5
-- **Data de Início:**
-- **Previsão de Término:** `01-06-2025`
+### Exemplo de saída dos testes:
+```
+🚀 Iniciando testes da API de Finanças Pessoais
+✅ API está funcionando!
+📊 Transações criadas: 4
+🎯 Metas criadas: 2
+🎉 Todos os testes foram executados com sucesso!
+```
+
+## Exemplos de Uso
+
+### Criar uma transação
+```bash
+curl -X POST "http://localhost:8000/transactions/" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "description": "Salário",
+    "amount": 5000.00,
+    "type": "receita",
+    "category": "outros"
+  }'
+```
+
+### Criar uma meta
+```bash
+curl -X POST "http://localhost:8000/goals/" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Viagem para Europa",
+    "description": "Economizar para viagem",
+    "target_amount": 15000.00,
+    "deadline": "2024-12-31T23:59:59"
+  }'
+```
+
+### Atualizar progresso de uma meta
+```bash
+curl -X PUT "http://localhost:8000/goals/1/progress?amount=1000.00"
+```
+
+## Características
+
+- **Simplicidade**: Código limpo e bem organizado
+- **Funcionalidade**: Todas as operações básicas implementadas
+- **Documentação**: Swagger UI automática
+- **Validação**: Validação automática de dados com Pydantic
+- **Flexibilidade**: Filtros e paginação nos endpoints
 

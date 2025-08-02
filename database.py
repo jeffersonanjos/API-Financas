@@ -1,18 +1,22 @@
 # database.py
 from sqlmodel import SQLModel, Session, create_engine
 
-# URL do banco de dados SQLite
+# Configuração do banco de dados SQLite
 sqlite_file_name = "finances.db"
 sqlite_url = f"sqlite:///{sqlite_file_name}"
 
-# Cria o motor do banco de dados com a configuração necessária para FastAPI
+# Cria o motor do banco de dados
 engine = create_engine(sqlite_url, echo=True)
 
-# Função para criar as tabelas
+# Importa todos os modelos para garantir que sejam criados
+from models.transaction import Transaction
+from models.goal import Goal
+
 def create_db_and_tables():
+    """Cria as tabelas no banco de dados"""
     SQLModel.metadata.create_all(engine)
 
-# Função geradora para a dependência de sessão do FastAPI
 def get_session():
+    """Função geradora para a dependência de sessão do FastAPI"""
     with Session(engine) as session:
         yield session
